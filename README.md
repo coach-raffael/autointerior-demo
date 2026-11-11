@@ -50,10 +50,10 @@ Details zur Social-Pipeline: [docs/content-pipeline.md](docs/content-pipeline.md
 ## Showcase-Hub
 
 - `demo.yaml` – Demo-Vertrag (Slug `car-interior`, nicht gelistet, schläft nach 60 min)
-- `Dockerfile` + `nginx.conf` – statischer Build unter `BASE_PATH`, nginx unprivilegiert auf Port 8080
+- `Dockerfile` – statischer Build unter `BASE_PATH`, ausgeliefert von static-web-server (ohne OS-Pakete, kein Root, Port 8080)
 - `.github/workflows/showcase.yml` – Qualitätsgate (`npm test`, oxlint + tsc, Secrets-, Abhängigkeits- und Image-Scan) und Meldung an den Hub
 - `e2e/` – Playwright-Kernablauf (Buchung) für das Erlebnis-Gate; `npm test` – Vitest für Preise und Konfigurator
 
 ## Stack
 
-Vite · React 19 · TypeScript · Tailwind CSS 4 · Zustand · React Router (Hash) · Lucide · Vitest · Playwright · nginx
+Vite · React 19 · TypeScript · Tailwind CSS 4 · Zustand · React Router (Hash) · Lucide · Vitest · Playwright · static-web-server
