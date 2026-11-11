@@ -76,7 +76,7 @@ export default function AdminLayout() {
         {nav}
         <div className="mt-auto space-y-1 pt-6">
           {user && <p className="truncate px-3 text-xs text-dust" title={user.email}>{user.email}</p>}
-          <Link to="/" className="flex items-center gap-2 px-3 py-2 text-sm text-dust hover:text-chalk"><ExternalLink size={15} /> View website</Link>
+          <a href="#/" className="flex items-center gap-2 px-3 py-2 text-sm text-dust hover:text-chalk"><ExternalLink size={15} /> View website</a>
           {apiMode
             ? <button onClick={signOut} className="flex items-center gap-2 px-3 py-2 text-sm text-dust hover:text-chalk"><LogOut size={15} /> Sign out</button>
             : <button onClick={() => confirmReset(resetDemo)} className="flex items-center gap-2 px-3 py-2 text-sm text-dust hover:text-chalk"><RotateCcw size={15} /> Reset demo data</button>}

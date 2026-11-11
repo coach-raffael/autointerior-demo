@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Menu, MessageCircle, Phone, X } from 'lucide-react'
 import Instagram from '../components/InstagramIcon'
 import { LANGS, useLang, useT } from '../i18n'
@@ -93,7 +92,7 @@ export default function Site() {
           </div>
           <div className="text-sm text-dust md:text-right">
             <p>{t('footer_hours')}</p>
-            <Link to="/admin" className="mt-4 inline-block underline decoration-dashed underline-offset-4 hover:text-chalk">{t('nav_admin')}</Link>
+            <a href="#/admin" className="mt-4 inline-block underline decoration-dashed underline-offset-4 hover:text-chalk">{t('nav_admin')}</a>
           </div>
         </div>
       </footer>

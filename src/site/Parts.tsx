@@ -82,7 +82,7 @@ export default function Parts() {
                 return (
                   <li key={p.id} className="flex items-center gap-4 rounded-2xl bg-nappa p-3 pr-4">
                     {p.img
-                      ? <img src={p.img} alt="" className="size-16 shrink-0 rounded-xl object-cover" />
+                      ? <img src={p.img} alt="" loading="lazy" decoding="async" className="size-16 shrink-0 rounded-xl object-cover" />
                       : <span className="size-16 shrink-0 rounded-xl bg-hide" />}
                     <span className="min-w-0 flex-1">
                       <span className="block text-xs text-dust">{PART_KIND_L10N[p.kind][lang]} · {t(COND_KEY[p.condition])}</span>

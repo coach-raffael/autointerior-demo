@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1f2124" />
     <meta name="description" content="ტორპედოს გადაკვრა თბილისში — Dashboard and steering wheel leather re-trimming in Tbilisi." />
+    <!-- Poster des 3D-Cockpits ist das größte Element beim Laden (LCP): sofort mit dem HTML anfordern,
+         nicht erst, wenn React es rendert -->
+    <link rel="preload" as="image" fetchpriority="high"
+      href="%BASE_URL%cockpit/poster-wide.webp"
+      imagesrcset="%BASE_URL%cockpit/poster-narrow.webp 640w, %BASE_URL%cockpit/poster-wide.webp 1600w"
+      imagesizes="(max-width: 700px) 100vw, 1200px" />
     <title>Auto Interiore — ტორპედოს გადაკვრა თბილისი</title>
   </head>
   <body>
