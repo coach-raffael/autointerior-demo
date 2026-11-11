@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calculator, CalendarPlus, ChevronLeft, ChevronRight, Megaphone, MessageCircle } from 'lucide-react'
-import { useStore, uid, makePost, day } from '../store'
+import { useStore, day } from '../store'
 import { ORDER_FLOW, SERVICES, carLabel, gel, lookLabel, type Order, type OrderStatus } from '../data'
 import Dashboard from '../components/Dashboard'
 import { useT } from '../i18n'
@@ -72,21 +72,20 @@ export default function Orders() {
 function OrderDetail({ order: o, onClose }: { order: Order; onClose: () => void }) {
   const t = useT()
   const navigate = useNavigate()
-  const { updateOrder, upsert, parts, posts } = useStore()
+  const { updateOrder, bookOrder, createPost, parts, posts } = useStore()
   const [date, setDate] = useState(o.date ?? day(1))
   const [time, setTime] = useState('10:00')
   const [msg, setMsg] = useState('')
   const linkedParts = parts.filter((p) => o.parts.includes(p.id))
   const hasPost = posts.some((p) => p.refId === o.id)
 
-  const book = () => {
-    upsert('events', { id: uid('E'), date, start: time, end: `${String(Number(time.slice(0, 2)) + 1).padStart(2, '0')}${time.slice(2)}`, title: `${carLabel(o.car.model)} drop-off (${o.customer.name})`, kind: 'appointment', orderId: o.id })
-    updateOrder(o.id, { status: 'scheduled', date })
-    setMsg(`Booked for ${fmtDate(date)} at ${time}.`)
+  const book = async () => {
+    await bookOrder(o.id, date, time)
+    if (!useStore.getState().error) setMsg(`Booked for ${fmtDate(date)} at ${time}.`)
   }
-  const createPost = () => {
-    upsert('posts', makePost(o, day(1) + 'T19:30'))
-    setMsg('Social post drafted. Review it under Social content.')
+  const draftPost = async () => {
+    await createPost('order', o.id)
+    if (!useStore.getState().error) setMsg('Social post drafted. Review it under Social content.')
   }
   const phone = o.customer.phone.replace(/\D/g, '')
   const reply = encodeURIComponent(
@@ -152,7 +151,7 @@ function OrderDetail({ order: o, onClose }: { order: Order; onClose: () => void 
               <MessageCircle size={15} /> Reply on WhatsApp
             </a>
             {(o.status === 'ready' || o.status === 'delivered') && !hasPost && (
-              <Btn onClick={createPost}><Megaphone size={15} /> Turn into a post</Btn>
+              <Btn onClick={draftPost}><Megaphone size={15} /> Turn into a post</Btn>
             )}
           </div>
           {msg && <p role="status" className="text-sm text-ok">{msg}</p>}

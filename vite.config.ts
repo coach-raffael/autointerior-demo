@@ -9,5 +9,10 @@ const basePath = process.env.BASE_PATH?.replace(/\/$/, '')
 export default defineConfig({
   base: basePath ? `${basePath}/` : './',
   plugins: [react(), tailwindcss()],
+  // `npm run dev` + server on :8787: one origin for the app, the API, media and the MCP/OAuth endpoints
+  server: {
+    proxy: Object.fromEntries(['/api', '/media', '/mcp', '/oauth', '/.well-known', '/authorize', '/token', '/register', '/revoke']
+      .map((p) => [p, { target: process.env.API_PROXY ?? 'http://localhost:8787', changeOrigin: false }])),
+  },
   test: { include: ['src/**/*.test.ts'] },
 })

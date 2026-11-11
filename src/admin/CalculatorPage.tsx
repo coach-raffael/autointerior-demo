@@ -47,9 +47,9 @@ export default function CalculatorPage() {
     updateOrder(order.id, { quote: { lines, labourHours: hours, rate, margin, vat, total }, status: order.status === 'new' ? 'quoted' : order.status })
     setDone(`Quote saved to ${order.id}.`)
   }
-  const toPO = () => {
+  const toPO = async () => {
     const id = `PO-${2209 + Math.floor(Math.random() * 90)}`
-    upsert('pos', { id, supplierId, createdAt: day(0), status: 'draft', orderRef: order?.id, items: lines.map((l) => ({ name: l.label, qty: l.qty, unit: l.unit, price: l.price })) })
+    await upsert('pos', { id, supplierId, createdAt: day(0), status: 'draft', orderRef: order?.id, items: lines.map((l) => ({ name: l.label, qty: l.qty, unit: l.unit, price: l.price })) })
     navigate('/admin/purchasing')
   }
 

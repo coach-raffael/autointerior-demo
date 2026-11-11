@@ -1,0 +1,16 @@
+{$DOMAIN} {
+	encode zstd gzip
+	# API, uploaded media, the MCP endpoint and its OAuth endpoints go to the backend
+	@api path /api/* /media/* /mcp /oauth/* /.well-known/* /authorize /token /register /revoke /health
+	handle @api {
+		reverse_proxy api:8787
+	}
+	handle {
+		reverse_proxy web:8080
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}

@@ -47,6 +47,12 @@ Details zur Social-Pipeline: [docs/content-pipeline.md](docs/content-pipeline.md
 - Logo: aktuell Wortmarke; sein Monogramm-Logo als SVG einsetzen.
 - Backend (Supabase o. ä.) für Aufträge, Login fürs Admin, Bild-Upload, Metricool-Versand.
 
+## Backend und MCP (optional)
+
+Mit `VITE_API_URL` läuft Website und Admin gegen das Backend in `server/` (PostgreSQL, Login, Bild-Upload) statt gegen localStorage. Das Backend bringt einen **MCP-Server mit OAuth** mit: Claude kann als Custom Connector Galerie, Teile, Aufträge, Kalender, Bestellungen und Social Posts bedienen – mit Freigaben pro Tool (ALLOW / APPROVAL / DENY) im Admin unter **Approvals** und **AI access**. Details, Tool-Liste und Betrieb: [server/README.md](server/README.md). Produktiv-Stack: `docker-compose.yml` + `Caddyfile`.
+
+Ohne `VITE_API_URL` bleibt alles wie bisher: eine in sich geschlossene Browser-Demo.
+
 ## Showcase-Hub
 
 - `demo.yaml` – Demo-Vertrag (Slug `car-interior`, nicht gelistet, schläft nach 60 min)

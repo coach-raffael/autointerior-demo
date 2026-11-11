@@ -1,0 +1,46 @@
+# Production stack: PostgreSQL + API/MCP + website, behind Caddy (automatic HTTPS).
+#   cp server/.env.example .env   # fill in DOMAIN, passwords
+#   docker compose up -d --build
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: autointeriore
+      POSTGRES_USER: autointeriore
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes: [db:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U autointeriore"], interval: 5s, retries: 10 }
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PUBLIC_URL: https://${DOMAIN:?set DOMAIN}
+      WEB_ORIGIN: https://${DOMAIN}
+      ADMIN_URL: https://${DOMAIN}/#/admin
+      DATABASE_URL: postgres://autointeriore:${POSTGRES_PASSWORD}@db:5432/autointeriore
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      METRICOOL_TOKEN: ${METRICOOL_TOKEN:-}
+      METRICOOL_USER_ID: ${METRICOOL_USER_ID:-}
+      METRICOOL_BLOG_ID: ${METRICOOL_BLOG_ID:-}
+    volumes: [media:/data]
+
+  web:
+    build: { context: ., args: { VITE_API_URL: /api } }
+    restart: unless-stopped
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN}" }
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile:ro, caddy:/data]
+    depends_on: [api, web]
+
+volumes: { db: {}, media: {}, caddy: {} }
