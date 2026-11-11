@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Check, Plus, Wrench } from 'lucide-react'
-import { BRANDS, PART_KIND_LABEL, gel } from '../data'
+import { BRANDS, PART_KIND_L10N, gel, partTitle } from '../data'
 import { useStore } from '../store'
-import { useT, type Key } from '../i18n'
+import { useLang, useT, type Key } from '../i18n'
 
 const COND_KEY: Record<string, Key> = { exchange: 'cond_exchange', used: 'cond_used', new: 'cond_new' }
 
 export default function Parts() {
   const t = useT()
+  const lang = useLang((s) => s.lang)
   const parts = useStore((s) => s.parts)
   const cart = useStore((s) => s.cart)
   const toggleCart = useStore((s) => s.toggleCart)
@@ -84,8 +85,8 @@ export default function Parts() {
                       ? <img src={p.img} alt="" className="size-16 shrink-0 rounded-xl object-cover" />
                       : <span className="size-16 shrink-0 rounded-xl bg-hide" />}
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs text-dust">{PART_KIND_LABEL[p.kind]} · {t(COND_KEY[p.condition])}</span>
-                      <span className="block truncate font-semibold">{p.title}</span>
+                      <span className="block text-xs text-dust">{PART_KIND_L10N[p.kind][lang]} · {t(COND_KEY[p.condition])}</span>
+                      <span className="line-clamp-2 block font-semibold">{partTitle(p, lang)}</span>
                       <span className="block text-sm">
                         <span className="font-display text-thread">{gel(p.price)}</span>
                         <span className="text-dust"> · {p.stock > 0 ? `${p.stock} ${t('parts_stock')}` : '—'}</span>

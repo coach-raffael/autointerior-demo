@@ -1,4 +1,6 @@
-import type { Key } from './i18n'
+import type { Key, Lang } from './i18n'
+
+type L10n = Record<Lang, string>
 
 /* ---------- Look / configurator ---------- */
 export type Finish = 'nappa' | 'alcantara' | 'perforated'
@@ -11,20 +13,25 @@ export interface Look {
 }
 
 export const LEATHERS = [
-  { id: 'black', name: 'Black', hex: '#1b1c1e', hi: '#3a3c40' },
-  { id: 'graphite', name: 'Graphite', hex: '#45484d', hi: '#6c7076' },
-  { id: 'cognac', name: 'Cognac', hex: '#7e4523', hi: '#b36c3e' },
-  { id: 'oxblood', name: 'Oxblood', hex: '#4e1a1e', hi: '#7f3036' },
-  { id: 'navy', name: 'Midnight', hex: '#1c2638', hi: '#34445f' },
-  { id: 'cream', name: 'Cream', hex: '#cfc3ad', hi: '#ece2cf' },
+  { id: 'black', name: 'Black', l10n: { ka: 'შავი', en: 'Black', ru: 'Чёрная' }, hex: '#1b1c1e', hi: '#3a3c40' },
+  { id: 'graphite', name: 'Graphite', l10n: { ka: 'გრაფიტი', en: 'Graphite', ru: 'Графит' }, hex: '#45484d', hi: '#6c7076' },
+  { id: 'cognac', name: 'Cognac', l10n: { ka: 'კონიაკი', en: 'Cognac', ru: 'Коньяк' }, hex: '#7e4523', hi: '#b36c3e' },
+  { id: 'oxblood', name: 'Oxblood', l10n: { ka: 'ბორდო', en: 'Oxblood', ru: 'Бордо' }, hex: '#4e1a1e', hi: '#7f3036' },
+  { id: 'navy', name: 'Midnight', l10n: { ka: 'მუქი ლურჯი', en: 'Midnight', ru: 'Тёмно-синяя' }, hex: '#1c2638', hi: '#34445f' },
+  { id: 'cream', name: 'Cream', l10n: { ka: 'კრემისფერი', en: 'Cream', ru: 'Кремовая' }, hex: '#cfc3ad', hi: '#ece2cf' },
 ]
 export const THREADS = [
-  { id: 'yellow', name: 'Yellow', hex: '#f2c230' },
-  { id: 'red', name: 'Red', hex: '#c8322f' },
-  { id: 'white', name: 'White', hex: '#e9e5dc' },
-  { id: 'blue', name: 'M blue', hex: '#3b74d8' },
-  { id: 'tonal', name: 'Tonal', hex: '' },
+  { id: 'yellow', name: 'Yellow', l10n: { ka: 'ყვითელი', en: 'Yellow', ru: 'Жёлтая' }, hex: '#f2c230' },
+  { id: 'red', name: 'Red', l10n: { ka: 'წითელი', en: 'Red', ru: 'Красная' }, hex: '#c8322f' },
+  { id: 'white', name: 'White', l10n: { ka: 'თეთრი', en: 'White', ru: 'Белая' }, hex: '#e9e5dc' },
+  { id: 'blue', name: 'M blue', l10n: { ka: 'M ლურჯი', en: 'M blue', ru: 'Синяя M' }, hex: '#3b74d8' },
+  { id: 'tonal', name: 'Tonal', l10n: { ka: 'ტყავის ტონში', en: 'Tonal', ru: 'В тон коже' }, hex: '' },
 ]
+const FINISH_L10N: Record<Finish, L10n> = {
+  nappa: { ka: 'ნაპა', en: 'nappa', ru: 'наппа' },
+  alcantara: { ka: 'ალკანტარა', en: 'alcantara', ru: 'алькантара' },
+  perforated: { ka: 'პერფორირებული', en: 'perforated', ru: 'перфорированная' },
+}
 export const FINISHES: Finish[] = ['nappa', 'alcantara', 'perforated']
 export const DEFAULT_LOOK: Look = { leather: 'black', finish: 'nappa', thread: 'yellow', seam: 'double' }
 
@@ -33,8 +40,13 @@ export const threadOf = (id: string, leather: string) => {
   const t = THREADS.find((x) => x.id === id) ?? THREADS[0]
   return t.hex || leatherOf(leather).hi
 }
-export const lookLabel = (l: Look) =>
-  `${leatherOf(l.leather).name} ${l.finish}, ${(THREADS.find((t) => t.id === l.thread) ?? THREADS[0]).name.toLowerCase()} ${l.seam} stitch`
+export const lookLabel = (l: Look, lang: Lang = 'en') => {
+  const leather = leatherOf(l.leather)
+  const thread = THREADS.find((t) => t.id === l.thread) ?? THREADS[0]
+  if (lang === 'ka') return `${leather.l10n.ka} ${FINISH_L10N[l.finish].ka}, ${thread.l10n.ka} ${l.seam === 'double' ? 'ორმაგი' : 'ერთმაგი'} ნაკერი`
+  if (lang === 'ru') return `${leather.l10n.ru} ${FINISH_L10N[l.finish].ru}, ${l.seam === 'double' ? 'двойная' : 'одинарная'} строчка, нить: ${thread.l10n.ru.toLowerCase()}`
+  return `${leather.name} ${l.finish}, ${thread.name.toLowerCase()} ${l.seam} stitch`
+}
 
 /* ---------- Vehicles ---------- */
 export interface Model { id: string; name: string; code: string; years: string }
@@ -106,18 +118,18 @@ export const SERVICES: { id: string; key: Key; from: number }[] = [
 
 /* ---------- Gallery (cropped from his Instagram grid; swap for originals) ---------- */
 export const WORK = [
-  { img: 'work/bentley.jpg', brand: 'bentley', title: 'Bentley', what: 'Dashboard, black nappa' },
-  { img: 'work/bmw-x6.jpg', brand: 'bmw', title: 'BMW X6', what: 'Dashboard upper, stitched' },
-  { img: 'work/audi-etron.jpg', brand: 'audi', title: 'Audi e-tron', what: 'Full dashboard' },
-  { img: 'work/porsche-cayenne.jpg', brand: 'porsche', title: 'Porsche Cayenne', what: 'Dashboard on the bench' },
-  { img: 'work/bmw-m5.jpg', brand: 'bmw', title: 'BMW M5', what: 'Stripped & prepped' },
-  { img: 'work/bmw-m6-finish.jpg', brand: 'bmw', title: 'BMW M6', what: 'Finished hood' },
-  { img: 'work/bmw-m6.jpg', brand: 'bmw', title: 'BMW M6', what: 'Instrument hood, grey stitch' },
-  { img: 'work/bmw-wheel.jpg', brand: 'bmw', title: 'BMW M wheel', what: 'Steering wheel' },
-  { img: 'work/mercedes-w140.jpg', brand: 'mercedes', title: 'Mercedes W140', what: 'Dashboard, nappa' },
-  { img: 'work/bmw-x7.jpg', brand: 'bmw', title: 'BMW X7', what: 'Dashboard centre seam' },
-  { img: 'work/jaguar.jpg', brand: 'jaguar', title: 'Jaguar', what: 'Red contrast stitch' },
-  { img: 'work/workshop-detail.jpg', brand: 'bmw', title: 'Workshop', what: 'Hood detail' },
+  { img: 'work/bentley.jpg', brand: 'bentley', title: 'Bentley', what: 'Dashboard, black nappa', l10n: { ka: 'ტორპედო, შავი ნაპა', ru: 'Торпеда, чёрная наппа' } },
+  { img: 'work/bmw-x6.jpg', brand: 'bmw', title: 'BMW X6', what: 'Dashboard upper, stitched', l10n: { ka: 'ტორპედოს ზედა ნაწილი, ნაკერით', ru: 'Верх торпеды, прострочен' } },
+  { img: 'work/audi-etron.jpg', brand: 'audi', title: 'Audi e-tron', what: 'Full dashboard', l10n: { ka: 'მთლიანი ტორპედო', ru: 'Торпеда целиком' } },
+  { img: 'work/porsche-cayenne.jpg', brand: 'porsche', title: 'Porsche Cayenne', what: 'Dashboard on the bench', l10n: { ka: 'ტორპედო სახელოსნოში', ru: 'Торпеда на верстаке' } },
+  { img: 'work/bmw-m5.jpg', brand: 'bmw', title: 'BMW M5', what: 'Stripped & prepped', l10n: { ka: 'გასუფთავებული და მომზადებული', ru: 'Очищена и подготовлена' } },
+  { img: 'work/bmw-m6-finish.jpg', brand: 'bmw', title: 'BMW M6', what: 'Finished hood', l10n: { ka: 'დასრულებული კოზირეკი', ru: 'Готовый козырёк' } },
+  { img: 'work/bmw-m6.jpg', brand: 'bmw', title: 'BMW M6', what: 'Instrument hood, grey stitch', l10n: { ka: 'ხელსაწყოების კოზირეკი, ნაცრისფერი ნაკერი', ru: 'Козырёк приборов, серая строчка' } },
+  { img: 'work/bmw-wheel.jpg', brand: 'bmw', title: 'BMW M wheel', titleL10n: { ka: 'BMW M საჭე', ru: 'Руль BMW M' }, what: 'Steering wheel', l10n: { ka: 'საჭე', ru: 'Руль' } },
+  { img: 'work/mercedes-w140.jpg', brand: 'mercedes', title: 'Mercedes W140', what: 'Dashboard, nappa', l10n: { ka: 'ტორპედო, ნაპა', ru: 'Торпеда, наппа' } },
+  { img: 'work/bmw-x7.jpg', brand: 'bmw', title: 'BMW X7', what: 'Dashboard centre seam', l10n: { ka: 'ტორპედოს ცენტრალური ნაკერი', ru: 'Центральный шов торпеды' } },
+  { img: 'work/jaguar.jpg', brand: 'jaguar', title: 'Jaguar', what: 'Red contrast stitch', l10n: { ka: 'წითელი კონტრასტული ნაკერი', ru: 'Красная контрастная строчка' } },
+  { img: 'work/workshop-detail.jpg', brand: 'bmw', title: 'Workshop', titleL10n: { ka: 'სახელოსნო', ru: 'Мастерская' }, what: 'Hood detail', l10n: { ka: 'კოზირეკის დეტალი', ru: 'Деталь козырька' } },
 ]
 
 export const INSTAGRAM = 'https://www.instagram.com/autointeriore/'
@@ -174,10 +186,20 @@ export type PartKind = 'dashboard' | 'wheel' | 'door' | 'console' | 'glovebox'
 export const PART_KIND_LABEL: Record<PartKind, string> = {
   dashboard: 'Dashboard', wheel: 'Steering wheel', door: 'Door card', console: 'Centre console', glovebox: 'Glovebox lid',
 }
+export const PART_KIND_L10N: Record<PartKind, L10n> = {
+  dashboard: { ka: 'ტორპედო', en: 'Dashboard', ru: 'Торпеда' },
+  wheel: { ka: 'საჭე', en: 'Steering wheel', ru: 'Руль' },
+  door: { ka: 'კარის პანელი', en: 'Door card', ru: 'Карта двери' },
+  console: { ka: 'ცენტრალური კონსოლი', en: 'Centre console', ru: 'Центральная консоль' },
+  glovebox: { ka: 'ხელთათმანების ყუთის სახურავი', en: 'Glovebox lid', ru: 'Крышка бардачка' },
+}
 export interface Part {
   id: string; model: string; kind: PartKind; condition: 'exchange' | 'used' | 'new'
   title: string; price: number; stock: number; published: boolean; img?: string
+  /** optional Georgian / Russian title for the website; falls back to `title` */
+  titles?: Partial<L10n>
 }
+export const partTitle = (p: Part, lang: Lang) => p.titles?.[lang] ?? p.title
 
 export type Network = 'instagram' | 'facebook' | 'tiktok' | 'youtube' | 'gmb' | 'threads'
 export const NETWORKS: { id: Network; label: string }[] = [

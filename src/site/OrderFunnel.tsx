@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Camera, Check, MessageCircle, X } from 'lucide-react'
 import Dashboard from '../components/Dashboard'
-import { BRANDS, SERVICES, WHATSAPP, carLabel, gel, lookLabel, type Order } from '../data'
+import { BRANDS, SERVICES, WHATSAPP, carLabel, gel, lookLabel, partTitle, type Order } from '../data'
 import { useStore, day } from '../store'
 import { useLang, useT, type Key } from '../i18n'
 
@@ -90,7 +90,7 @@ export default function OrderFunnel() {
     ? encodeURIComponent(
         [`${t('sent_text')}: ${sent.id}`, carLabel(sent.car.model) + (sent.car.year ? ` (${sent.car.year})` : ''),
           sent.services.map((s) => t(SERVICES.find((x) => x.id === s)!.key)).join(', '),
-          sent.look ? lookLabel(sent.look) : '', sent.date ?? ''].filter(Boolean).join('\n'),
+          sent.look ? lookLabel(sent.look, lang) : '', sent.date ?? ''].filter(Boolean).join('\n'),
       )
     : ''
 
@@ -183,7 +183,7 @@ export default function OrderFunnel() {
                       <Dashboard look={look} className="w-40 shrink-0" />
                       <div className="flex-1 text-sm">
                         <p className="text-dust">{t('f_look')}</p>
-                        <p>{lookLabel(look)}</p>
+                        <p>{lookLabel(look, lang)}</p>
                         <label className="mt-2 inline-flex items-center gap-2 text-dust">
                           <input type="checkbox" checked={useLook} onChange={(e) => setUseLook(e.target.checked)} className="accent-[#f2c230]" />
                           {t('cfg_request')}
@@ -195,7 +195,7 @@ export default function OrderFunnel() {
                         <p className="mb-2 text-sm text-dust">{t('f_parts')}</p>
                         {cartParts.map((p) => (
                           <div key={p.id} className="flex items-center justify-between border-b border-seam py-2 text-sm">
-                            <span>{carLabel(p.model)} — {p.title}</span>
+                            <span className="min-w-0">{carLabel(p.model)} — {partTitle(p, lang)}</span>
                             <span className="flex items-center gap-3">{gel(p.price)}
                               <button onClick={() => toggleCart(p.id)} aria-label="Remove" className="text-dust hover:text-chalk"><X size={15} /></button>
                             </span>
@@ -237,7 +237,7 @@ export default function OrderFunnel() {
                     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                       {days.map(({ iso, d, full }) => (
                         <button key={iso} disabled={full} onClick={() => setDate(iso)} aria-pressed={date === iso}
-                          className={`rounded-xl border px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-35 ${date === iso ? 'border-thread bg-nappa' : 'border-seam hover:border-dust'}`}>
+                          className={`min-w-0 rounded-xl border px-1.5 py-3 text-center [overflow-wrap:anywhere] transition disabled:cursor-not-allowed disabled:opacity-35 ${date === iso ? 'border-thread bg-nappa' : 'border-seam hover:border-dust'}`}>
                           <span className="block text-xs text-dust">{d.toLocaleDateString(locale, { weekday: 'short' })}</span>
                           <span className="block font-display">{d.getDate()}</span>
                           <span className="block text-xs text-dust">{full ? t('f_full') : d.toLocaleDateString(locale, { month: 'short' })}</span>

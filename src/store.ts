@@ -72,16 +72,16 @@ function seed() {
   ]
 
   const parts: Part[] = [
-    { id: 'PT-01', model: 'bmw-x6', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black nappa, double stitch', price: 2400, stock: 1, published: true, img: 'work/bmw-x6.jpg' },
-    { id: 'PT-02', model: 'bmw-m6', kind: 'dashboard', condition: 'exchange', title: 'Dashboard upper, black nappa, grey stitch', price: 2100, stock: 1, published: true, img: 'work/bmw-m6-finish.jpg' },
-    { id: 'PT-03', model: 'bmw-e39', kind: 'wheel', condition: 'exchange', title: 'M sport wheel, re-trimmed nappa', price: 480, stock: 2, published: true, img: 'work/bmw-wheel.jpg' },
-    { id: 'PT-04', model: 'mb-w140', kind: 'dashboard', condition: 'used', title: 'Dashboard core, no cracks', price: 650, stock: 1, published: true, img: 'work/mercedes-w140.jpg' },
-    { id: 'PT-05', model: 'p-cayenne', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black nappa, red stitch', price: 2900, stock: 1, published: true, img: 'work/porsche-cayenne.jpg' },
-    { id: 'PT-06', model: 'a-etron', kind: 'dashboard', condition: 'used', title: 'Dashboard core with airbag lid', price: 1100, stock: 1, published: true, img: 'work/audi-etron.jpg' },
-    { id: 'PT-07', model: 'j-fpace', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black, red contrast stitch', price: 2300, stock: 0, published: true, img: 'work/jaguar.jpg' },
-    { id: 'PT-08', model: 'bmw-x7', kind: 'dashboard', condition: 'used', title: 'Dashboard core, centre seam intact', price: 1500, stock: 1, published: false, img: 'work/bmw-x7.jpg' },
-    { id: 'PT-09', model: 'mb-w463', kind: 'glovebox', condition: 'exchange', title: 'Glovebox lid, cognac nappa', price: 390, stock: 1, published: true },
-    { id: 'PT-10', model: 'lr-rr', kind: 'console', condition: 'exchange', title: 'Centre armrest, black perforated', price: 520, stock: 1, published: true },
+    { id: 'PT-01', model: 'bmw-x6', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black nappa, double stitch', titles: { ka: 'ტორპედო, შავი ნაპა, ორმაგი ნაკერი', ru: 'Торпеда, чёрная наппа, двойная строчка' }, price: 2400, stock: 1, published: true, img: 'work/bmw-x6.jpg' },
+    { id: 'PT-02', model: 'bmw-m6', kind: 'dashboard', condition: 'exchange', title: 'Dashboard upper, black nappa, grey stitch', titles: { ka: 'ტორპედოს ზედა ნაწილი, შავი ნაპა, ნაცრისფერი ნაკერი', ru: 'Верх торпеды, чёрная наппа, серая строчка' }, price: 2100, stock: 1, published: true, img: 'work/bmw-m6-finish.jpg' },
+    { id: 'PT-03', model: 'bmw-e39', kind: 'wheel', condition: 'exchange', title: 'M sport wheel, re-trimmed nappa', titles: { ka: 'M Sport საჭე, გადაკრული ნაპით', ru: 'Руль M Sport, перетянут наппой' }, price: 480, stock: 2, published: true, img: 'work/bmw-wheel.jpg' },
+    { id: 'PT-04', model: 'mb-w140', kind: 'dashboard', condition: 'used', title: 'Dashboard core, no cracks', titles: { ka: 'ტორპედოს ბაზა, ბზარების გარეშე', ru: 'Основа торпеды, без трещин' }, price: 650, stock: 1, published: true, img: 'work/mercedes-w140.jpg' },
+    { id: 'PT-05', model: 'p-cayenne', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black nappa, red stitch', titles: { ka: 'ტორპედო, შავი ნაპა, წითელი ნაკერი', ru: 'Торпеда, чёрная наппа, красная строчка' }, price: 2900, stock: 1, published: true, img: 'work/porsche-cayenne.jpg' },
+    { id: 'PT-06', model: 'a-etron', kind: 'dashboard', condition: 'used', title: 'Dashboard core with airbag lid', titles: { ka: 'ტორპედოს ბაზა ეარბეგის სახურავით', ru: 'Основа торпеды с крышкой подушки' }, price: 1100, stock: 1, published: true, img: 'work/audi-etron.jpg' },
+    { id: 'PT-07', model: 'j-fpace', kind: 'dashboard', condition: 'exchange', title: 'Dashboard, black, red contrast stitch', titles: { ka: 'ტორპედო, შავი, წითელი კონტრასტული ნაკერი', ru: 'Торпеда, чёрная, красная контрастная строчка' }, price: 2300, stock: 0, published: true, img: 'work/jaguar.jpg' },
+    { id: 'PT-08', model: 'bmw-x7', kind: 'dashboard', condition: 'used', title: 'Dashboard core, centre seam intact', titles: { ka: 'ტორპედოს ბაზა, ცენტრალური ნაკერი მთელია', ru: 'Основа торпеды, центральный шов цел' }, price: 1500, stock: 1, published: false, img: 'work/bmw-x7.jpg' },
+    { id: 'PT-09', model: 'mb-w463', kind: 'glovebox', condition: 'exchange', title: 'Glovebox lid, cognac nappa', titles: { ka: 'ხელთათმანების ყუთის სახურავი, კონიაკისფერი ნაპა', ru: 'Крышка бардачка, коньячная наппа' }, price: 390, stock: 1, published: true },
+    { id: 'PT-10', model: 'lr-rr', kind: 'console', condition: 'exchange', title: 'Centre armrest, black perforated', titles: { ka: 'ცენტრალური საიდაყვე, შავი პერფორირებული', ru: 'Центральный подлокотник, чёрный перфорированный' }, price: 520, stock: 1, published: true },
   ]
 
   const posts: Post[] = [
@@ -173,6 +173,6 @@ export const useStore = create<State>()(
       remove: (key, id) => set((s) => ({ [key]: (s[key] as { id: string }[]).filter((x) => x.id !== id) }) as Partial<State>),
       resetDemo: () => set({ ...seed(), look: DEFAULT_LOOK, cart: [] }),
     }),
-    { name: 'autointeriore-demo-v1' },
+    { name: 'autointeriore-demo-v2' },
   ),
 )

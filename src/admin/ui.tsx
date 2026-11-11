@@ -17,7 +17,7 @@ export function Panel({ title, right, children, className = '' }: { title?: stri
   return (
     <section className={`rounded-2xl border border-seam bg-hide/70 ${className}`}>
       {title && (
-        <div className="flex items-center justify-between border-b border-seam px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-seam px-4 py-3">
           <h2 className="text-sm font-semibold">{title}</h2>
           {right}
         </div>

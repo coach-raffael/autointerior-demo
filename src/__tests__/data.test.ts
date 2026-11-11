@@ -52,3 +52,29 @@ describe('quote calculator', () => {
     }
   })
 })
+
+describe('translations', () => {
+  const latin = /[A-Za-z]{3,}/ // brand/model names like "BMW" or "M" are fine, English words are not
+
+  it('names every leather and thread in all three languages', async () => {
+    const { LEATHERS, THREADS } = await import('../data')
+    for (const x of [...LEATHERS, ...THREADS]) {
+      expect(x.l10n.ka).toBeTruthy()
+      expect(x.l10n.ru).toBeTruthy()
+      expect(x.l10n.ka).not.toMatch(latin)
+    }
+  })
+
+  it('describes a look without English words in Georgian and Russian', () => {
+    for (const lang of ['ka', 'ru'] as const) {
+      const text = lookLabel({ leather: 'cognac', finish: 'perforated', thread: 'red', seam: 'single' }, lang)
+      expect(text).not.toMatch(latin)
+    }
+  })
+
+  it('translates every gallery caption and part kind', async () => {
+    const { WORK, PART_KIND_L10N } = await import('../data')
+    for (const w of WORK) expect('l10n' in w).toBe(true)
+    for (const k of Object.values(PART_KIND_L10N)) expect(k.ka && k.ru).toBeTruthy()
+  })
+})

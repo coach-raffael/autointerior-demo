@@ -23,7 +23,7 @@ export default function Overview() {
 
   return (
     <Page title="Good morning">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-[repeat(4,minmax(0,1fr))]">
         {stats.map((s) => (
           <Link key={s.label} to={s.to} className="rounded-2xl border border-seam bg-hide/70 p-4 transition hover:border-dust">
             <p className="font-display text-2xl">{s.value}</p>
@@ -32,7 +32,7 @@ export default function Overview() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Panel title="New requests" right={<Link to="/admin/orders" className="text-xs text-dust hover:text-chalk">All orders</Link>}>
           {fresh.length === 0 ? <Empty>No new requests. They appear here as soon as someone books on the website.</Empty> : (
             <ul className="divide-y divide-seam">
@@ -43,7 +43,7 @@ export default function Overview() {
                     <p className="truncate font-semibold">{carLabel(o.car.model)} <span className="font-normal text-dust">{o.car.year}</span></p>
                     <p className="truncate text-sm text-dust">{o.customer.name} · {o.customer.phone}</p>
                   </div>
-                  <div className="text-right text-sm">
+                  <div className="shrink-0 text-right text-sm">
                     <Badge tone="thread">{o.id}</Badge>
                     {o.date && <p className="mt-1 text-dust">wants {fmtDate(o.date)}</p>}
                   </div>
@@ -86,18 +86,18 @@ export default function Overview() {
         <Panel title="Needs attention">
           <ul className="space-y-2 text-sm">
             {openPO.map((p) => (
-              <li key={p.id} className="flex justify-between gap-3">
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <Link to="/admin/purchasing" className="hover:text-thread">{p.id} to {suppliers.find((s) => s.id === p.supplierId)?.name}</Link>
                 <Badge tone={p.status === 'draft' ? 'warn' : 'muted'}>{p.status === 'draft' ? 'not sent' : 'awaiting delivery'}</Badge>
               </li>
             ))}
             {lowStock.map((p) => (
-              <li key={p.id} className="flex justify-between gap-3">
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <Link to="/admin/parts" className="hover:text-thread">{carLabel(p.model)}: {p.title}</Link>
                 <Badge tone="warn">out of stock, still listed</Badge>
               </li>
             ))}
-            <li className="flex justify-between gap-3">
+            <li className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <Link to="/admin/content" className="hover:text-thread">Social posts waiting for approval</Link>
               <Badge tone="thread">{posts.filter((p) => p.status === 'draft').length}</Badge>
             </li>

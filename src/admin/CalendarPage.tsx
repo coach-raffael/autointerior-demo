@@ -39,17 +39,17 @@ export default function CalendarPage() {
     <Page title="Calendar" actions={
       <div className="flex items-center gap-2">
         <Btn variant="quiet" onClick={() => shift(-1)} aria-label="Previous month"><ChevronLeft size={16} /></Btn>
-        <span className="w-48 text-center font-display whitespace-nowrap">{cursor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
+        <span className="min-w-[8.5rem] text-center font-display text-sm whitespace-nowrap sm:w-48 sm:text-base">{cursor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
         <Btn variant="quiet" onClick={() => shift(1)} aria-label="Next month"><ChevronRight size={16} /></Btn>
         <Btn onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); setSel(today) }}>Today</Btn>
       </div>
     }>
-      <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="overflow-hidden rounded-2xl border border-seam">
-          <div className="grid grid-cols-7 bg-hide text-center text-xs text-dust">
+          <div className="grid grid-cols-[repeat(7,minmax(0,1fr))] bg-hide text-center text-xs text-dust">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <div key={d} className="py-2">{d}</div>)}
           </div>
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-[repeat(7,minmax(0,1fr))]">
             {cells.map((d) => {
               const k = iso(d)
               const ev = events.filter((e) => e.date === k)
