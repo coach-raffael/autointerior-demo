@@ -39,9 +39,9 @@ export default function Parts() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           {/* models */}
-          <div className="grid grid-cols-2 gap-3 self-start">
+          <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 self-start">
             {brand.models.map((m) => {
               const n = countFor(m.id)
               const active = m.id === model.id
@@ -50,7 +50,7 @@ export default function Parts() {
                   key={m.id}
                   onClick={() => setModelId(m.id)}
                   aria-pressed={active}
-                  className={`relative overflow-hidden rounded-2xl border p-4 text-left transition ${active ? 'border-thread bg-nappa' : 'border-seam hover:border-dust'}`}
+                  className={`relative min-w-0 overflow-hidden rounded-2xl border p-4 text-left break-words transition ${active ? 'border-thread bg-nappa' : 'border-seam hover:border-dust'}`}
                 >
                   <span aria-hidden className="pointer-events-none absolute -right-2 -bottom-4 font-display text-6xl font-bold text-white/[0.04]">{m.code}</span>
                   <span className="block font-display text-lg font-semibold">{m.name}</span>
