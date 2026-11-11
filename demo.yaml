@@ -1,0 +1,23 @@
+# Demo-Vertrag für den Showcase-Hub → demos.coach-raffael.com/car-interior
+slug: car-interior
+title: { en: "Auto Interiore – Workshop Website & Admin", de: "Auto Interiore – Website & Werkstatt-Admin" }
+teaser: { en: "Leather configurator, parts by car model, a five-step booking funnel and a full workshop back office." }
+description: { en: "Pitch demo for an upholstery workshop in Tbilisi: live leather and stitch configurator on a drawn dashboard, parts catalogue by make and model, booking funnel with blocked days, and an admin with order kanban, calendar, quote calculator, purchase orders and a social content queue. Georgian, English and Russian." }
+category: demo
+tags: [react, vite, typescript, tailwind, zustand]
+visibility: unlisted          # Pitch: nur per Link bzw. Share-Link
+lifecycle: on-demand
+idle_minutes: 60
+routing: path
+wake: anyone
+
+services:
+  web:
+    image: ghcr.io/coach-raffael/autointerior-demo-web
+    port: 8080
+    expose: /
+    memory: 64m
+
+quality:
+  flows: [e2e/booking.spec.ts]
+  lighthouse: { performance: 80, accessibility: 90, best-practices: 90, seo: 80 }

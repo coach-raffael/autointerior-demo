@@ -1,5 +1,9 @@
 # Auto Interiore – Website & Werkstatt-Admin (Pitch-Demo)
 
+![Arbeit aus der Galerie](public/work/bmw-m5.jpg)
+
+**Live:** https://demos.coach-raffael.com/car-interior/ (nicht gelistet, Start beim Öffnen) – ausgerollt über den Showcase-Hub, siehe `demo.yaml`.
+
 Proaktive Demo für [@autointeriore](https://www.instagram.com/autointeriore/), eine Sattlerei in Tbilisi, die Armaturenbretter (ტორპედო) und Lenkräder mit Leder neu bezieht.
 
 Alle Daten sind Beispieldaten und liegen im Browser (localStorage). Nichts wird verschickt oder gepostet.
@@ -43,6 +47,13 @@ Details zur Social-Pipeline: [docs/content-pipeline.md](docs/content-pipeline.md
 - Logo: aktuell Wortmarke; sein Monogramm-Logo als SVG einsetzen.
 - Backend (Supabase o. ä.) für Aufträge, Login fürs Admin, Bild-Upload, Metricool-Versand.
 
+## Showcase-Hub
+
+- `demo.yaml` – Demo-Vertrag (Slug `car-interior`, nicht gelistet, schläft nach 60 min)
+- `Dockerfile` + `nginx.conf` – statischer Build unter `BASE_PATH`, nginx unprivilegiert auf Port 8080
+- `.github/workflows/showcase.yml` – Qualitätsgate (`npm test`, oxlint + tsc, Secrets-, Abhängigkeits- und Image-Scan) und Meldung an den Hub
+- `e2e/` – Playwright-Kernablauf (Buchung) für das Erlebnis-Gate; `npm test` – Vitest für Preise und Konfigurator
+
 ## Stack
 
-Vite · React 19 · TypeScript · Tailwind CSS 4 · Zustand · React Router (Hash) · Lucide
+Vite · React 19 · TypeScript · Tailwind CSS 4 · Zustand · React Router (Hash) · Lucide · Vitest · Playwright · nginx
