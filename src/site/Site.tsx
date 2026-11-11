@@ -35,6 +35,8 @@ function LangSwitch() {
 
 export default function Site() {
   const t = useT()
+  const loadPublic = useStore((s) => s.loadPublic)
+  useEffect(() => { loadPublic() }, [loadPublic])
   const cart = useStore((s) => s.cart)
   const [menu, setMenu] = useState(false)
   const links = [

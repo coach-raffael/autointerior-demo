@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+import { apiMode, api, uploadImage, dataUrlToBlob, loadAdminData, loadPublicData, toPart, toPO, toPost, toSupplier, fromPart, fromSupplier, fromEvent, type GalleryItem, type ServerContact, type ServerPart, type ServerPO, type ServerPost } from './api'
+import { useLang } from './i18n'
 import { persist } from 'zustand/middleware'
 import {
   type CalEvent, type Look, type Order, type Part, type Post, type PurchaseOrder, type Supplier,
-  DEFAULT_LOOK, carLabel, leatherOf, THREADS, modelOf, PART_KIND_LABEL,
+  DEFAULT_LOOK, carLabel, leatherOf, THREADS, modelOf, PART_KIND_LABEL, WORK,
 } from './data'
 
 export const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
@@ -138,41 +140,222 @@ export function makePartPost(p: Part, date: string): Post {
 
 /* ---------- store ---------- */
 type Data = ReturnType<typeof seed>
+type Key = 'suppliers' | 'pos' | 'events' | 'parts' | 'posts'
+
+/** The gallery of the self-contained demo (no backend): built from the bundled images. */
+const localGallery = (): GalleryItem[] => WORK.map((w, i) => ({
+  id: `GAL-LOCAL${i}`, brand: w.brand, focus: '50% 50%', published: true, image: w.img,
+  title: { en: w.title, ka: ('titleL10n' in w ? (w.titleL10n as { ka: string }).ka : w.title), ru: ('titleL10n' in w ? (w.titleL10n as { ru: string }).ru : w.title) },
+  caption: { en: w.what, ka: w.l10n.ka, ru: w.l10n.ru },
+}))
+
 interface State extends Data {
+  gallery: GalleryItem[]
+  /** true once the current view has its data (always true in the local demo) */
+  ready: boolean
+  /** last failed write/read, shown as a toast in the admin */
+  error: string | null
+  clearError: () => void
   // visitor-side scratch state
   look: Look
   cart: string[]
   setLook: (l: Look) => void
   toggleCart: (partId: string) => void
   clearCart: () => void
-  // admin actions
-  addOrder: (o: Order) => void
-  updateOrder: (id: string, patch: Partial<Order>) => void
-  upsert: <K extends 'suppliers' | 'pos' | 'events' | 'parts' | 'posts'>(key: K, item: Data[K][number]) => void
-  remove: (key: 'suppliers' | 'pos' | 'events' | 'parts' | 'posts', id: string) => void
+  // loading (API mode)
+  loadPublic: () => Promise<void>
+  loadAdmin: () => Promise<void>
+  // writes — the same calls work against the API and the local demo
+  addOrder: (o: Order) => Promise<string>
+  updateOrder: (id: string, patch: Partial<Order>) => Promise<void>
+  bookOrder: (id: string, date: string, start: string) => Promise<void>
+  upsert: <K extends Key>(key: K, item: Data[K][number]) => Promise<Data[K][number] | undefined>
+  remove: (key: Key, id: string) => Promise<void>
+  createPost: (source: 'order' | 'part' | 'gallery', refId: string) => Promise<void>
+  generatePosts: () => Promise<number>
+  saveGalleryItem: (g: Partial<GalleryItem> & { id?: string; file?: Blob }) => Promise<void>
+  removeGalleryItem: (id: string) => Promise<void>
   resetDemo: () => void
 }
 
+const ENDPOINT: Record<Key, string> = { suppliers: '/admin/contacts', pos: '/admin/purchase-orders', events: '/admin/events', parts: '/admin/parts', posts: '/admin/posts' }
+
 export const useStore = create<State>()(
   persist(
-    (set) => ({
-      ...seed(),
-      look: DEFAULT_LOOK,
-      cart: [],
-      setLook: (look) => set({ look }),
-      toggleCart: (id) => set((s) => ({ cart: s.cart.includes(id) ? s.cart.filter((x) => x !== id) : [...s.cart, id] })),
-      clearCart: () => set({ cart: [] }),
-      addOrder: (o) => set((s) => ({ orders: [o, ...s.orders] })),
-      updateOrder: (id, patch) => set((s) => ({ orders: s.orders.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
-      upsert: (key, item) =>
+    (set, get) => {
+      /** run an API write, reload the admin data, surface errors */
+      const write = async <T,>(fn: () => Promise<T>): Promise<T | undefined> => {
+        try {
+          const r = await fn()
+          await get().loadAdmin()
+          return r
+        } catch (e) {
+          set({ error: e instanceof Error ? e.message : String(e) })
+          return undefined
+        }
+      }
+      const localUpsert = <K extends Key>(key: K, item: Data[K][number]) =>
         set((s) => {
           const list = s[key] as { id: string }[]
           const exists = list.some((x) => x.id === item.id)
           return { [key]: exists ? list.map((x) => (x.id === item.id ? item : x)) : [item, ...list] } as Partial<State>
-        }),
-      remove: (key, id) => set((s) => ({ [key]: (s[key] as { id: string }[]).filter((x) => x.id !== id) }) as Partial<State>),
-      resetDemo: () => set({ ...seed(), look: DEFAULT_LOOK, cart: [] }),
-    }),
-    { name: 'autointeriore-demo-v2' },
+        })
+
+      return {
+        ...seed(),
+        gallery: localGallery(),
+        ready: !apiMode,
+        error: null,
+        clearError: () => set({ error: null }),
+        look: DEFAULT_LOOK,
+        cart: [],
+        setLook: (look) => set({ look }),
+        toggleCart: (id) => set((s) => ({ cart: s.cart.includes(id) ? s.cart.filter((x) => x !== id) : [...s.cart, id] })),
+        clearCart: () => set({ cart: [] }),
+
+        loadPublic: async () => {
+          if (!apiMode) return
+          try { set({ ...(await loadPublicData()), ready: true }) } catch (e) { set({ error: e instanceof Error ? e.message : String(e), ready: true }) }
+        },
+        loadAdmin: async () => {
+          if (!apiMode) return
+          set({ ...(await loadAdminData()), ready: true })
+        },
+
+        addOrder: async (o) => {
+          if (!apiMode) { set((s) => ({ orders: [o, ...s.orders] })); return o.id }
+          // customer photos are uploaded first, the booking references them
+          const photoIds = []
+          for (const p of o.photos) photoIds.push((await uploadImage(await dataUrlToBlob(p), 'public')).id)
+          const r = await api<{ id: string }>('/public/orders', { method: 'POST', json: {
+            customerName: o.customer.name, customerPhone: o.customer.phone, channel: o.customer.channel,
+            carModel: o.car.model, carYear: o.car.year, services: o.services, look: o.look ?? null, partIds: o.parts, photoIds,
+            wantedDate: o.date, note: o.note, lang: useLang.getState().lang,
+          } })
+          return r.id
+        },
+
+        updateOrder: async (id, patch) => {
+          if (!apiMode) { set((s) => ({ orders: s.orders.map((o) => (o.id === id ? { ...o, ...patch } : o)) })); return }
+          await write(async () => {
+            if (patch.quote) {
+              const { lines, labourHours, rate, margin, vat } = patch.quote
+              await api(`/admin/orders/${id}/quote`, { method: 'POST', json: { lines, labourHours, rate, margin, vat } })
+            }
+            if (patch.status) await api(`/admin/orders/${id}/status`, { method: 'PATCH', json: { status: patch.status } })
+            if (patch.note !== undefined) await api(`/admin/orders/${id}/note`, { method: 'PATCH', json: { note: patch.note } })
+          })
+        },
+
+        bookOrder: async (id, date, start) => {
+          if (!apiMode) {
+            const o = get().orders.find((x) => x.id === id)!
+            localUpsert('events', { id: uid('E'), date, start, end: `${String(Number(start.slice(0, 2)) + 1).padStart(2, '0')}${start.slice(2)}`, title: `${carLabel(o.car.model)} drop-off (${o.customer.name})`, kind: 'appointment', orderId: id })
+            set((s) => ({ orders: s.orders.map((x) => (x.id === id ? { ...x, status: 'scheduled', date } : x)) }))
+            return
+          }
+          await write(() => api(`/admin/orders/${id}/book`, { method: 'POST', json: { date, start } }))
+        },
+
+        upsert: async (key, item) => {
+          if (!apiMode) { localUpsert(key, item); return item }
+          const old = (get()[key] as { id: string }[]).find((x) => x.id === item.id)
+          return write(async () => {
+            switch (key) {
+              case 'parts': {
+                const p = item as Part
+                const r = await api<ServerPart>(old ? `/admin/parts/${p.id}` : '/admin/parts', { method: old ? 'PATCH' : 'POST', json: fromPart(p) })
+                return toPart(r) as Data[typeof key][number]
+              }
+              case 'suppliers': {
+                const r = await api<ServerContact>('/admin/contacts', { method: 'POST', json: fromSupplier(item as Supplier, !old) })
+                return toSupplier(r) as Data[typeof key][number]
+              }
+              case 'events': {
+                const r = await api<CalEvent>('/admin/events', { method: 'POST', json: fromEvent(item as CalEvent) })
+                return r as Data[typeof key][number]
+              }
+              case 'pos': {
+                const po = item as PurchaseOrder
+                const prev = old as PurchaseOrder | undefined
+                if (!prev) {
+                  const r = await api<ServerPO>('/admin/purchase-orders', { method: 'POST', json: { contactId: po.supplierId, items: po.items.filter((i) => i.name), orderRef: po.orderRef, note: po.note } })
+                  return toPO(r) as Data[typeof key][number]
+                }
+                if (po.status !== prev.status) {
+                  const r = await api<ServerPO>(`/admin/purchase-orders/${po.id}/mark`, { method: 'POST', json: { status: po.status, via: po.status === 'sent' ? 'email-app' : undefined } })
+                  return toPO(r) as Data[typeof key][number]
+                }
+                const items = po.items.filter((i) => i.name)
+                const r = await api<ServerPO>(`/admin/purchase-orders/${po.id}`, { method: 'PATCH', json: { items: items.length ? items : undefined, orderRef: po.orderRef ?? null, note: po.note ?? null } })
+                return toPO(r) as Data[typeof key][number]
+              }
+              case 'posts': {
+                const p = item as Post
+                const prev = old as Post | undefined
+                if (prev && p.status !== prev.status) {
+                  if (p.status === 'approved') await api(`/admin/posts/${p.id}/approve`, { method: 'POST' })
+                  else if (p.status === 'scheduled') await api(`/admin/posts/${p.id}/schedule`, { method: 'POST', json: { lang: 'ka' } })
+                  return p as Data[typeof key][number]
+                }
+                const r = await api<ServerPost>(`/admin/posts/${p.id}`, { method: 'PATCH', json: { captions: p.captions, hashtags: p.hashtags, networks: p.networks, publishAt: p.date } })
+                return toPost(r) as Data[typeof key][number]
+              }
+            }
+          })
+        },
+
+        remove: async (key, id) => {
+          if (!apiMode) { set((s) => ({ [key]: (s[key] as { id: string }[]).filter((x) => x.id !== id) }) as Partial<State>); return }
+          await write(() => api(`${ENDPOINT[key]}/${id}`, { method: 'DELETE' }))
+        },
+
+        createPost: async (source, refId) => {
+          if (!apiMode) {
+            if (source === 'order') { const o = get().orders.find((x) => x.id === refId); if (o) localUpsert('posts', makePost(o, day(1) + 'T19:30')) }
+            if (source === 'part') { const p = get().parts.find((x) => x.id === refId); if (p) localUpsert('posts', makePartPost(p, day(2) + 'T13:00')) }
+            return
+          }
+          await write(() => api('/admin/posts', { method: 'POST', json: { source, refId } }))
+        },
+
+        generatePosts: async () => {
+          if (!apiMode) {
+            const s = get()
+            const todo = s.orders.filter((o) => (o.status === 'ready' || o.status === 'delivered') && !s.posts.some((p) => p.refId === o.id))
+            todo.forEach((o, i) => localUpsert('posts', makePost(o, day(i + 2) + 'T19:30')))
+            return todo.length
+          }
+          const r = await write(() => api<unknown[]>('/admin/posts/generate', { method: 'POST' }))
+          return r?.length ?? 0
+        },
+
+        saveGalleryItem: async (g) => {
+          if (!apiMode) {
+            const image = g.file ? URL.createObjectURL(g.file) : g.image
+            const item = { ...(get().gallery.find((x) => x.id === g.id) ?? { id: uid('GAL'), focus: '50% 50%', published: true }), ...g, image } as GalleryItem
+            set((s) => ({ gallery: s.gallery.some((x) => x.id === item.id) ? s.gallery.map((x) => (x.id === item.id ? item : x)) : [item, ...s.gallery] }))
+            return
+          }
+          await write(async () => {
+            const body = { brand: g.brand, title: g.title, caption: g.caption, focus: g.focus, published: g.published }
+            if (g.id) return api(`/admin/gallery/${g.id}`, { method: 'PATCH', json: body })
+            const media = await uploadImage(g.file!, 'admin')
+            return api('/admin/gallery', { method: 'POST', json: { ...body, media_id: media.id } })
+          })
+        },
+        removeGalleryItem: async (id) => {
+          if (!apiMode) { set((s) => ({ gallery: s.gallery.filter((x) => x.id !== id) })); return }
+          await write(() => api(`/admin/gallery/${id}`, { method: 'DELETE' }))
+        },
+
+        resetDemo: () => set({ ...seed(), gallery: localGallery(), look: DEFAULT_LOOK, cart: [] }),
+      }
+    },
+    {
+      name: 'autointeriore-demo-v2',
+      // with a backend, only the visitor's own choices stay in the browser
+      partialize: (s) => (apiMode ? { look: s.look, cart: s.cart } : { ...s, error: null }) as Partial<State>,
+    },
   ),
 )

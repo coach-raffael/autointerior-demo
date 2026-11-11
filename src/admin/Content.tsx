@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Code2, Sparkles, Trash2 } from 'lucide-react'
-import { useStore, makePost, day } from '../store'
+import { useStore } from '../store'
+import { api, apiMode } from '../api'
 import { NETWORKS, carLabel, type Network, type Post } from '../data'
 import type { Lang } from '../i18n'
 import { Badge, Btn, Empty, Modal, Page, Panel, fmtDateTime } from './ui'
 
-const TONE = { draft: 'warn', approved: 'thread', scheduled: 'ok' } as const
+const TONE = { draft: 'warn', approved: 'thread', scheduled: 'ok', failed: 'warn' } as const
 const LANG_LABEL: Record<Lang, string> = { ka: 'ქართული', en: 'English', ru: 'Русский' }
 // placeholder until Metricool's getBestTimeToPostByNetwork is wired to his brand
 const BEST_SLOTS = ['Tue 19:30', 'Thu 19:30', 'Sat 13:00']
@@ -44,10 +45,10 @@ export default function Content() {
   const [msg, setMsg] = useState('')
   const sorted = [...posts].sort((a, b) => a.date.localeCompare(b.date))
 
-  const autopilot = () => {
-    const todo = orders.filter((o) => (o.status === 'ready' || o.status === 'delivered') && !posts.some((p) => p.refId === o.id))
-    todo.forEach((o, i) => upsert('posts', makePost(o, day(i + 2) + 'T19:30')))
-    setMsg(todo.length ? `${todo.length} new draft${todo.length > 1 ? 's' : ''} from finished jobs.` : 'Every finished job already has a post.')
+  const generatePosts = useStore((s) => s.generatePosts)
+  const autopilot = async () => {
+    const n = await generatePosts()
+    setMsg(n ? `${n} new draft${n > 1 ? 's' : ''} from finished work.` : 'Everything finished already has a post.')
   }
   const set = (p: Post, patch: Partial<Post>) => upsert('posts', { ...p, ...patch })
 
@@ -128,13 +129,24 @@ export default function Content() {
           <p className="text-sm text-dust">
             In the live version this goes straight to Metricool’s scheduling API. In the demo nothing is published — this is the request that would be sent for {payload.refId ? carLabel(orders.find((o) => o.id === payload.refId)?.car.model ?? '') || payload.refId : 'this post'}.
           </p>
-          <pre className="mt-4 max-h-[60vh] overflow-auto rounded-xl bg-hide p-4 text-xs leading-relaxed">{JSON.stringify(metricoolPayload(payload, lang), null, 2)}</pre>
+          <PayloadView post={payload} lang={lang} />
           <div className="mt-4 flex gap-2">
-            <Btn variant="primary" onClick={() => { set(payload, { status: 'scheduled' }); setPayload(null) }}><Check size={15} /> Mark as scheduled (demo)</Btn>
+            <Btn variant="primary" onClick={() => { set(payload, { status: 'scheduled' }); setPayload(null) }}><Check size={15} /> {apiMode ? 'Schedule in Metricool' : 'Mark as scheduled (demo)'}</Btn>
             <Btn onClick={() => setPayload(null)}>Close</Btn>
           </div>
         </Modal>
       )}
     </Page>
   )
+}
+
+/** The request Metricool receives: built by the server in API mode, locally in the demo. */
+function PayloadView({ post, lang }: { post: Post; lang: Lang }) {
+  const [remote, setRemote] = useState<unknown>(null)
+  useEffect(() => {
+    if (!apiMode) return
+    api(`/admin/posts/${post.id}/metricool?lang=${lang}`).then(setRemote).catch(() => setRemote({ error: 'Could not load the request' }))
+  }, [post.id, lang])
+  const body = apiMode ? remote : metricoolPayload(post, lang).info
+  return <pre className="mt-4 max-h-[60vh] overflow-auto rounded-xl bg-hide p-4 text-xs leading-relaxed">{body ? JSON.stringify(body, null, 2) : 'Loading…'}</pre>
 }

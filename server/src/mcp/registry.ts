@@ -231,6 +231,12 @@ export const TOOLS: ToolDef[] = [
     run: (ctx, actor) => social.generateDrafts(ctx, actor),
   },
   {
+    name: 'create_post', title: 'Draft a post', area: 'social', mode: 'ALLOW', readOnly: false,
+    input: { source: z.enum(['order', 'part', 'gallery']), refId: z.string().describe('Order, part or gallery item id') },
+    description: 'Drafts one post (ka/en/ru captions, photo, next free slot) for a specific job, part or gallery photo.',
+    run: (ctx, actor, a) => social.createPostFor(ctx, actor, a.source, a.refId),
+  },
+  {
     name: 'update_post', title: 'Edit a post', area: 'social', mode: 'ALLOW', readOnly: false, input: I.postUpdate,
     description: 'Changes captions, hashtags, networks or time. An edited post goes back to draft and needs approval again.',
     run: (ctx, actor, a) => social.updatePost(ctx, actor, a as never),

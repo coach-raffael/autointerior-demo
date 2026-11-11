@@ -69,8 +69,10 @@ export default function OrderFunnel() {
     if (step === 1 && services2.length === 0) return setError(t('f_need_work'))
     setStep((s) => Math.min(s + 1, STEPS.length - 1))
   }
-  const submit = () => {
+  const [sending, setSending] = useState(false)
+  const submit = async () => {
     if (!name.trim() || phone.replace(/\D/g, '').length < 6) return setError(t('f_need_contact'))
+    if (sending) return
     const o: Order = {
       id: `AI-${1042 + Math.floor(Math.random() * 900)}`,
       createdAt: day(0), status: 'new',
@@ -78,9 +80,16 @@ export default function OrderFunnel() {
       car: { model, year }, services: services2, look: useLook ? look : undefined,
       parts: cart, photos, date: date || undefined, note: note.trim() || undefined,
     }
-    addOrder(o)
-    clearCart()
-    setSent(o)
+    setSending(true)
+    try {
+      const id = await addOrder(o)
+      clearCart()
+      setSent({ ...o, id })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('f_error'))
+    } finally {
+      setSending(false)
+    }
   }
   const reset = () => {
     setSent(null); setStep(0); setBrandId(''); setModel(''); setYear(''); setPhotos([]); setDate(''); setNote(''); setError('')
@@ -270,7 +279,7 @@ export default function OrderFunnel() {
                 <button onClick={() => { setError(''); setStep((s) => Math.max(0, s - 1)) }} className={`rounded-full border border-seam px-5 py-3 ${step === 0 ? 'invisible' : ''}`}>{t('f_back')}</button>
                 {step < STEPS.length - 1
                   ? <button onClick={next} className="rounded-full bg-chalk px-6 py-3 font-semibold text-nappa">{t('f_next')}</button>
-                  : <button onClick={submit} className="rounded-full bg-thread px-6 py-3 font-semibold text-nappa">{t('f_send')}</button>}
+                  : <button onClick={submit} disabled={sending} aria-busy={sending} className="rounded-full bg-thread px-6 py-3 font-semibold text-nappa disabled:opacity-60">{sending ? t('f_sending') : t('f_send')}</button>}
               </div>
             </>
           )}

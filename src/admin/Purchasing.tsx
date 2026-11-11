@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Mail, MessageCircle, PackageCheck, Plus, Trash2 } from 'lucide-react'
 import { useStore, day } from '../store'
+import { apiMode } from '../api'
 import { gel, type PurchaseOrder } from '../data'
 import { Badge, Btn, Empty, Field, Modal, Page, fmtDate } from './ui'
 
@@ -14,10 +15,12 @@ export default function Purchasing() {
   const open = pos.find((p) => p.id === openId)
   const list = pos.filter((p) => filter === 'all' || p.status === filter)
 
-  const create = () => {
+  const create = async () => {
     const id = `PO-${2300 + Math.floor(Math.random() * 600)}`
-    upsert('pos', { id, supplierId: suppliers.find((s) => s.kind === 'supplier')!.id, createdAt: day(0), status: 'draft', items: [{ name: '', qty: 1, unit: 'm²', price: 0 }] })
-    setOpenId(id)
+    const supplierId = suppliers.find((s) => s.kind === 'supplier')!.id
+    // the server needs at least one real line; locally an empty line is fine to start with
+    const created = await upsert('pos', { id, supplierId, createdAt: day(0), status: 'draft', items: [{ name: apiMode ? 'New item' : '', qty: 1, unit: 'm²', price: 0 }] })
+    if (created) setOpenId(created.id)
   }
 
   return (

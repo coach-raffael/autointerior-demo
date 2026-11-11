@@ -8,6 +8,9 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 ARG BASE_PATH=""
 ENV BASE_PATH=$BASE_PATH
+# leer = in sich geschlossene Browser-Demo; "/api" = Website/Admin über das Backend (server/)
+ARG VITE_API_URL=""
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 FROM joseluisq/static-web-server:2

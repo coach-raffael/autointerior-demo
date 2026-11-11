@@ -82,6 +82,35 @@ export async function generateDrafts(ctx: Ctx, actor: Actor) {
   return created.map((p) => ({ ...p, image: mediaUrl(ctx, p.mediaId) }))
 }
 
+/** One draft for a specific job, part or gallery photo (admin buttons "Turn into a post"). */
+export async function createPostFor(ctx: Ctx, actor: Actor, source: 'order' | 'part' | 'gallery', refId: string) {
+  const [dup] = await ctx.db.select({ id: schema.posts.id }).from(schema.posts).where(eq(schema.posts.refId, refId))
+  if (dup) throw badRequest(`There is already a post for ${refId}`)
+  const slots = (await ctx.db.select({ p: schema.posts.publishAt }).from(schema.posts)).map((r) => r.p)
+  const publishAt = nextSlot(slots, source === 'part' ? 2 : 1)
+  let values: typeof schema.posts.$inferInsert
+  if (source === 'order') {
+    const [o] = await ctx.db.select().from(schema.orders).where(eq(schema.orders.id, refId))
+    if (!o) throw notFound(`Order ${refId}`)
+    values = { id: newId('POST'), source, refId, mediaId: o.photoIds[0] ?? null, captions: orderCaptions(carLabel(o.carModel), o.look), hashtags: tagsFor(modelOf(o.carModel)?.brand.name ?? ''), networks: ['instagram', 'facebook', 'tiktok', 'threads', 'gmb'], publishAt }
+  } else if (source === 'part') {
+    const [p] = await ctx.db.select().from(schema.parts).where(eq(schema.parts.id, refId))
+    if (!p) throw notFound(`Part ${refId}`)
+    const car = carLabel(p.model)
+    values = { id: newId('POST'), source, refId, mediaId: p.mediaId, networks: ['instagram', 'facebook', 'threads'], publishAt: publishAt.replace('19:30', '13:00'),
+      captions: { ka: `გაყიდვაშია: ${car} — ${p.title.ka}. ${p.price} ₾. მიწერეთ WhatsApp-ზე.`, en: `For sale: ${car} — ${p.title.en}. ${p.price} ₾. Message us on WhatsApp.`, ru: `В продаже: ${car} — ${p.title.ru}. ${p.price} ₾. Пишите в WhatsApp.` },
+      hashtags: '#autointeriore #tbilisi #carparts #ავტონაწილები #запчасти' }
+  } else {
+    const [g] = await ctx.db.select().from(schema.galleryItems).where(eq(schema.galleryItems.id, refId))
+    if (!g) throw notFound(`Gallery item ${refId}`)
+    values = { id: newId('POST'), source, refId, mediaId: g.mediaId, networks: ['instagram', 'facebook', 'threads'], publishAt, hashtags: tagsFor(g.brand),
+      captions: { en: `${g.title.en} — ${g.caption.en}. Auto Interiore, Tbilisi.`, ka: `${g.title.ka} — ${g.caption.ka}. Auto Interiore, თბილისი.`, ru: `${g.title.ru} — ${g.caption.ru}. Auto Interiore, Тбилиси.` } }
+  }
+  const [row] = await ctx.db.insert(schema.posts).values(values).returning()
+  await audit(ctx, actor, 'post.create', row.id, { source, refId })
+  return { ...row, image: mediaUrl(ctx, row.mediaId) }
+}
+
 async function getPost(ctx: Ctx, id: string) {
   const [p] = await ctx.db.select().from(schema.posts).where(eq(schema.posts.id, id))
   if (!p) throw notFound(`Post ${id}`)

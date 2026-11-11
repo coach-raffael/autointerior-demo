@@ -108,6 +108,8 @@ const dict = {
   f_note: { ka: 'შენიშვნა (არასავალდებულო)', en: 'Note (optional)', ru: 'Комментарий (необязательно)' },
   f_back: { ka: 'უკან', en: 'Back', ru: 'Назад' },
   f_next: { ka: 'შემდეგი', en: 'Next', ru: 'Далее' },
+  f_sending: { ka: 'იგზავნება…', en: 'Sending…', ru: 'Отправляем…' },
+  f_error: { ka: 'გაგზავნა ვერ მოხერხდა. სცადეთ ხელახლა ან მოგვწერეთ WhatsApp-ზე.', en: 'Sending failed. Try again or message us on WhatsApp.', ru: 'Не удалось отправить. Попробуйте ещё раз или напишите в WhatsApp.' },
   f_send: { ka: 'შეკვეთის გაგზავნა', en: 'Send request', ru: 'Отправить заявку' },
   f_need_car: { ka: 'აირჩიეთ მარკა და მოდელი.', en: 'Choose a make and model to continue.', ru: 'Выберите марку и модель.' },
   f_need_work: { ka: 'აირჩიეთ ერთი სამუშაო მაინც.', en: 'Choose at least one job to continue.', ru: 'Выберите хотя бы одну работу.' },

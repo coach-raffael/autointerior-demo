@@ -46,6 +46,14 @@ test("visitor books a dashboard re-trim", async ({ page }) => {
 
 test("workshop admin shows the order pipeline", async ({ page }) => {
   await page.goto("./#/admin");
+  // with the backend (VITE_API_URL) the admin asks for a login first; the static demo opens directly
+  const login = page.getByRole("button", { name: "Sign in" });
+  await expect(login.or(page.getByText(/AI-10\d\d/).first())).toBeVisible();
+  if (await login.isVisible()) {
+    await page.getByLabel("Email").fill(process.env.E2E_ADMIN_EMAIL ?? "owner@autointeriore.demo");
+    await page.getByLabel("Password").fill(process.env.E2E_ADMIN_PASSWORD ?? "werkstatt-demo");
+    await login.click();
+  }
   await expect(page.locator("main")).toBeVisible();
   await expect(page.getByText(/AI-10\d\d/).first()).toBeVisible();
 });

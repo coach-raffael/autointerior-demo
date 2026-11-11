@@ -211,9 +211,9 @@ export const NETWORKS: { id: Network; label: string }[] = [
   { id: 'gmb', label: 'Google Business' },
 ]
 export interface Post {
-  id: string; source: 'order' | 'part' | 'manual'; refId?: string; img?: string
+  id: string; source: 'order' | 'part' | 'gallery' | 'manual'; refId?: string; img?: string
   captions: { ka: string; en: string; ru: string }; hashtags: string
-  networks: Network[]; date: string; status: 'draft' | 'approved' | 'scheduled'
+  networks: Network[]; date: string; status: 'draft' | 'approved' | 'scheduled' | 'failed'
 }
 
 /* ---------- Calculator price list ---------- */

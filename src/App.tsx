@@ -13,6 +13,9 @@ const Purchasing = lazy(() => import('./admin/Purchasing'))
 const Contacts = lazy(() => import('./admin/Contacts'))
 const PartsAdmin = lazy(() => import('./admin/PartsAdmin'))
 const Content = lazy(() => import('./admin/Content'))
+const GalleryAdmin = lazy(() => import('./admin/GalleryAdmin'))
+const Approvals = lazy(() => import('./admin/Approvals'))
+const AiAccess = lazy(() => import('./admin/AiAccess'))
 
 export default function App() {
   return (
@@ -28,6 +31,9 @@ export default function App() {
             <Route path="contacts" element={<Contacts />} />
             <Route path="parts" element={<PartsAdmin />} />
             <Route path="content" element={<Content />} />
+            <Route path="gallery" element={<GalleryAdmin />} />
+            <Route path="approvals" element={<Approvals />} />
+            <Route path="ai" element={<AiAccess />} />
           </Route>
           <Route path="/*" element={<Site />} />
         </Routes>

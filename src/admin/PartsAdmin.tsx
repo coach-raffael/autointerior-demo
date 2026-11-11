@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Megaphone, Minus, Plus, Trash2 } from 'lucide-react'
-import { useStore, makePartPost, day } from '../store'
+import { useStore } from '../store'
 import { BRANDS, PART_KIND_LABEL, carLabel, gel, type Part, type PartKind } from '../data'
 import { Badge, Btn, Field, Modal, Page } from './ui'
 
 const COND = { exchange: 'Re-trimmed, exchange', used: 'Used core', new: 'New' }
 
 export default function PartsAdmin() {
-  const { parts, posts, upsert } = useStore()
+  const { parts, posts, upsert, createPost } = useStore()
   const [edit, setEdit] = useState<Part | null>(null)
   const [msg, setMsg] = useState('')
   const set = (p: Part, patch: Partial<Part>) => upsert('parts', { ...p, ...patch })
@@ -53,7 +53,7 @@ export default function PartsAdmin() {
                 <td className="px-4 text-right">
                   {posts.some((x) => x.refId === p.id)
                     ? <Badge>post drafted</Badge>
-                    : <Btn variant="quiet" onClick={() => { upsert('posts', makePartPost(p, day(2) + 'T13:00')); setMsg(`Post drafted for “${p.title}”. Review it under Social content.`) }}><Megaphone size={14} /> Post it</Btn>}
+                    : <Btn variant="quiet" onClick={async () => { await createPost('part', p.id); if (!useStore.getState().error) setMsg(`Post drafted for “${p.title}”. Review it under Social content.`) }}><Megaphone size={14} /> Post it</Btn>}
                 </td>
               </tr>
             ))}

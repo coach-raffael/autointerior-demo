@@ -168,6 +168,10 @@ export function createApp(ctx: Ctx) {
   admin.delete('/purchase-orders/:id', async (req, res) => { res.json(await purchasing.deletePurchaseOrder(ctx, A(req), String(req.params.id))) })
 
   admin.get('/posts', async (_req, res) => { res.json(await social.listPosts(ctx)) })
+  admin.post('/posts', json, async (req, res) => {
+    const b = parse({ source: z.enum(['order', 'part', 'gallery']), refId: z.string() }, req.body)
+    res.status(201).json(await social.createPostFor(ctx, A(req), b.source, b.refId))
+  })
   admin.post('/posts/generate', async (req, res) => { res.json(await social.generateDrafts(ctx, A(req))) })
   admin.patch('/posts/:id', json, async (req, res) => { res.json(await social.updatePost(ctx, A(req), parse(I.postUpdate, { ...req.body, id: req.params.id }))) })
   admin.post('/posts/:id/approve', async (req, res) => { res.json(await social.approvePost(ctx, A(req), String(req.params.id))) })
